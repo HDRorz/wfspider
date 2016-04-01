@@ -15,12 +15,17 @@ class SpiderItem(scrapy.Item):
     name = scrapy.Field()
     url = scrapy.Field()
     data = scrapy.Field()
-    export = scrapy.Field()
+    type = scrapy.Field()
+    info = scrapy.Field()
+    noteexpress = scrapy.Field()
+    notefirst = scrapy.Field()
 
 
 class ExportItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
 
+    id = scrapy.Field()
     export = scrapy.Field()
+    type = scrapy.Field()
 

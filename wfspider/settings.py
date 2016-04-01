@@ -21,7 +21,10 @@ DATABASE = {
     'port': '3306',
     'username': 'root',  # fill in your username here
     'password': '',  # fill in your password here
-    'database': 'scrape'
+    'database': 'wanfang',
+    'query': {
+        'charset': 'utf8'
+    }
 }
 
 # display duplicate logs
@@ -73,9 +76,9 @@ DUPEFILTER_DEBUG = True
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'wfrobot.pipelines.SomePipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'wfspider.pipelines.ExportPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

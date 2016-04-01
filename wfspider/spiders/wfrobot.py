@@ -7,6 +7,7 @@ import scrapy
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy.selector import Selector
+from inline_requests import inline_requests
 
 from wfspider.items import SpiderItem, ExportItem
 
@@ -37,17 +38,19 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
     #         yield item
 
 
+    @inline_requests
     def parse_item(self, response):
-        ExportUrl = "http://s.wanfangdata.com.cn/Export/Export.aspx?scheme=NoteFirst"
+        ExportUrl = "http://s.wanfangdata.com.cn/Export/Export.aspx?scheme="
         for sel in response.css('.record-item'):
 
             item = SpiderItem()
             item['name'] = sel.css('.title')[0].xpath('string(.)').extract()
             item['url'] = sel.css('.title')[0].xpath('@href').extract()
             item['data'] = sel.css('.exportLink')[0].xpath('@data-resourceid').extract()
+            export = str(item['data'][0])
+            item['type'] = export.split('_')[0]
 
             # item['export'] = self.get_xml(response.headers, str(item['data'][0]))
-            export = str(item['data'][0])
 
             # ExportResponse = scrapy.http.TextResponse(url=ExportUrl,
             #                                           headers=response.headers,
@@ -57,13 +60,30 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
             #                                             cookies={'rs': str(item['data'][0])},
             #                                             meta={'dont_merge_cookies': False}))
 
-            yield scrapy.http.Request(
-                url=ExportUrl+'&rs='+export,
+            item['info'] = scrapy.http.Request(
+                url=str(item['url'][0]),
+                headers=response.headers
+            )
+
+            item['noteexpress'] = scrapy.http.Request(
+                url=ExportUrl+'NoteExpress&rs='+export,
                 headers=response.headers,
                 cookies={'rs': export},
                 meta={'dont_merge_cookies': False},
                 callback=self.parse_export
             )
+
+            notefirst = yield scrapy.http.Request(
+                url=ExportUrl+'NoteFirst&rs='+export,
+                headers=response.headers,
+                cookies={'rs': export},
+                meta={'dont_merge_cookies': False},
+                # callback=self.parse_export
+            )
+            item['notefirst'] = self.parse_export(notefirst)
+
+            yield item
+
             # ExportResponse = self._response_downloaded(
             #     scrapy.http.TextResponse(
             #         url=ExportUrl,
@@ -91,24 +111,38 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
             # print item['name'][0].encode('utf-8'), item['url'][0].encode('utf-8')
             # yield item
 
-
-    def get_xml(self, headers, rs):
+    def prase_notefirst(self, response):
         ExportUrl = "http://s.wanfangdata.com.cn/Export/Export.aspx?scheme=NoteFirst"
 
-        export = yield scrapy.Request(
-                url=ExportUrl,
-                headers=headers,
+        item = response.meta['item']
+
+        rs = item['rs']
+
+        request = scrapy.Request(
+                url=ExportUrl+'&rs='+rs,
+                headers=response.headers,
                 cookies={'rs': rs},
                 meta={'dont_merge_cookies': False},
                 callback=self.parse_export
         )
+        request.meta['item'] = item
+
+        return request
 
         # return export
 
     def parse_export(self, response):
-        item = ExportItem()
+        # item = ExportItem()
+        export = response.css('#export_container').xpath('string(.)').extract()
         print response.css('#export_container').xpath('string(.)').extract()
-
-        item['export'] = response.css('#export_container').xpath('string(.)').extract()
+        return export
+        # return {'export': str(export[0])}
+        # item['id'] = response.request.cookies['rs']
+        # item['export'] = response.css('#export_container').xpath('string(.)').extract()
+        # item['type'] = response.request.cookies['rs'].split('_')[0]
         # yield str(response.css('#export_container').xpath('string(.)').extract())
-        return item
+
+        # item = response.meta['item']
+        # item['notefirst'] = notefirst
+
+        # return item
