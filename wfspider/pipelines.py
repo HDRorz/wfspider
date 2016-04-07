@@ -25,28 +25,36 @@ class ExportPipeline(object):
 
     def process_item(self, item, spider):
         session = self.Session()
+        result = None
 
         xml = '<?xml version="1.0" encoding="utf-8"?>' \
               '<Bibliographies>' \
               '<BibliographiesCount>1</BibliographiesCount>' + item['notefirst'][0].encode('utf8') + '</Bibliographies>'
-        print xml
+        # print xml
         tree = etree.fromstring(xml)
 
         if item['type'] == 'Periodical':
+            result = self.prase_periodical(xml)
+        if item['type'] == 'Thesis':
+            result = self.prase_thesis(xml)
+        if item['type'] == 'Conference':
+            result = self.prase_conference(xml)
 
+        print str(result)
+
+        if result is not None:
             try:
-                session.add(self.prase_periodical(xml))
+                session.add(result)
                 session.commit()
             except:
                 session.rollback()
                 raise
             finally:
                 session.close()
-
         return item
 
     def prase_periodical(self, xml):
-        print xml
+        # print xml
         try:
             tree = etree.fromstring(xml)
 
@@ -100,12 +108,9 @@ class ExportPipeline(object):
             return periodical
         except:
             raise
-        finally:
-            return None
-
 
     def prase_thesis(self, xml):
-        print xml
+        # print xml
         try:
             tree = etree.fromstring(xml)
 
@@ -120,41 +125,85 @@ class ExportPipeline(object):
             classification = tree.xpath('//CLC/text()')
             degree = tree.xpath('//Degree/text()')
             major = tree.xpath('//Degree/text()')
-    # subject = Column('Subject', String(200), nullable=False)
-    # university = Column('University', String(200), nullable=False)
-    # submitdate = Column('SubmitDate', String(20), nullable=False)
-    # quliaficationdate = Column('QuliaficationDate', String(20), nullable=True)
-    # supervisor = Column('Supervisor', String(20), nullable=False)
-    # supervisoraffiliation = Column('SupervisorAffiliation', String(255), nullable=False)
-    #         language = tree.xpath('//Language/text()')
-    #
-    #         thesis = Thesis(
-    #             guid=uuid.uuid1(),
-    #             datasetid=', '.join(datasetid),
-    #             title=', '.join(title),
-    #             author=', '.join(author),
-    #             authoradd=', '.join(authoradd),
-    #             abstract=', '.join(abstract),
-    #             keywords=', '.join(keywords),
-    #             engtitle=', '.join(engtitle),
-    #             engkeywords=', '.join(engkeywords),
-    #             engabstract=', '.join(engabstract),
-    #             engauthor=', '.join(engauthor),
-    #             engauthoradd=', '.join(engauthoradd),
-    #             language=', '.join(language),
-    #             issn=', '.join(issn),
-    #             doi=', '.join(doi),
-    #             classification=', '.join(classification),
-    #             journalname=', '.join(journalname),
-    #             engjournalname=', '.join(engjournalname),
-    #             year=', '.join(year),
-    #             volume=', '.join(volume),
-    #             period=', '.join(period),
-    #             page=', '.join(page)
-    #         )
-    #
-    #         return thesis
+            subject = tree.xpath('//Degree/text()')
+            university = tree.xpath('//Media/text()')
+            submitdate = tree.xpath('//Year/text()')
+            quliaficationdate = tree.xpath('//Year/text()')
+            supervisor = tree.xpath('//SecondaryResponsibility[@Responsibility="Director"]/Name/text()')
+            supervisoraffiliation = tree.xpath('//Media/text()')
+            language = tree.xpath('//Language/text()')
+
+            thesis = Thesis(
+                guid=uuid.uuid1(),
+                datasetid=', '.join(datasetid),
+                title=', '.join(title),
+                author=', '.join(author),
+                abstract=', '.join(abstract),
+                keywords=', '.join(keywords),
+                engtitle=', '.join(engtitle),
+                engkeywords=', '.join(engkeywords),
+                engabstract=', '.join(engabstract),
+                classification=', '.join(classification),
+                degree=', '.join(degree),
+                major=', '.join(major),
+                subject=', '.join(subject),
+                university=', '.join(university),
+                submitdate=', '.join(submitdate),
+                quliaficationdate=', '.join(quliaficationdate),
+                supervisor=', '.join(supervisor),
+                supervisoraffiliation=', '.join(supervisoraffiliation),
+                language=', '.join(language),
+            )
+
+            return thesis
         except:
             raise
-        finally:
-            return None
+
+    def prase_conference(self, xml):
+        # print xml
+        try:
+            tree = etree.fromstring(xml)
+
+            datasetid = tree.xpath('//Url/text()')
+            title = tree.xpath('//PrimaryTitle/Title/text()')
+            author = tree.xpath('//Author/Info[@Lang="chi"]/FullName/text()')
+            abstract = tree.xpath('//Abstract[@Lang="chi"]/text()')
+            keywords = tree.xpath('//keyword[@Lang="chi"]/text()')
+            engauthor = tree.xpath('//Author/Info[@Lang="eng"]/FullName/text()')
+            engauthoradd = tree.xpath('//Author/Info[@Lang="chi"]/Organization/text()')
+            engtitle = tree.xpath('//Title[@Lang="eng"]/text()')
+            engkeywords = tree.xpath('//keyword[@Lang="eng"]/text()')
+            engabstract = tree.xpath('//Abstract[@Lang="eng"]/text()')
+            classification = tree.xpath('//CLC/text()')
+            conferencesname = tree.xpath('//Media/text()')
+            proceedingname = tree.xpath('//MotherTitle/Title/text()')
+            year = tree.xpath('//Year/text()')
+            page = tree.xpath('//PageScope/text()')
+            publisher = tree.xpath('//SponsorName/text()')
+            language = tree.xpath('//Language/text()')
+
+            conference = Conference(
+                guid=uuid.uuid1(),
+                datasetid=', '.join(datasetid),
+                title=', '.join(title),
+                author=', '.join(author),
+                abstract=', '.join(abstract),
+                keywords=', '.join(keywords),
+                engauthor=', '.join(engauthor),
+                engauthoradd=', '.join(engauthoradd),
+                engtitle=', '.join(engtitle),
+                engkeywords=', '.join(engkeywords),
+                engabstract=', '.join(engabstract),
+                classification=', '.join(classification),
+                conferencesname=', '.join(conferencesname),
+                proceedingname=', '.join(proceedingname),
+                year=', '.join(year),
+                page=', '.join(page),
+                publisher=', '.join(publisher),
+                language=', '.join(language),
+            )
+
+            return conference
+        except:
+            raise
+

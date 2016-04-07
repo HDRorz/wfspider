@@ -54,7 +54,7 @@ class Thesis(BaseModel):
     __tablename__ = "Thesis"
 
     guid = Column('GUID', String(50), primary_key=True)
-    datesetid = Column('DatasetID', String(50), nullable=False)
+    datasetid = Column('DatasetID', String(50), nullable=False)
     title = Column('Title', String(1000), nullable=False)
     author = Column('Author', String(1000), nullable=False)
     abstract = Column('Abstract', String(4000), nullable=False)
@@ -80,7 +80,7 @@ class Conference(BaseModel):
     __tablename__ = "Conference"
 
     guid = Column('GUID', String(50), primary_key=True)
-    datesetid = Column('DatasetID', String(50), nullable=False)
+    datasetid = Column('DatasetID', String(50), nullable=False)
     title = Column('Title', String(1000), nullable=False)
     author = Column('Author', String(1000), nullable=False)
     abstract = Column('Abstract', String(4000), nullable=False)
@@ -92,6 +92,7 @@ class Conference(BaseModel):
     engabstract = Column('EngAbstract', String(4000), nullable=True)
     classification = Column('Classification', String(150), nullable=True)
     conferencesname = Column('ConferencesName', String(200), nullable=False)
+    proceedingname = Column('ProceedingName', String(200), nullable=False)
     year = Column('Year', String(20), nullable=False)
     page = Column('Page', String(255), nullable=True)
     publisher = Column('Publisher', String(200), nullable=True)
