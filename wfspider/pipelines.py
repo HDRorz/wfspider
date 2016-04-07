@@ -40,8 +40,6 @@ class ExportPipeline(object):
         if item['type'] == 'Conference':
             result = self.prase_conference(xml)
 
-        print str(result)
-
         if result is not None:
             try:
                 session.add(result)

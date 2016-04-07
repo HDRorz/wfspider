@@ -22,7 +22,7 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
         Rule(
             LinkExtractor(
                 allow=(''),
-                deny=('p=3'),  # 设置爬几页搜索结果
+                deny=('p=10'),  # 设置爬几页搜索结果
                 restrict_xpaths=(u'//p[contains(@class, "pager")]/a[contains(text(), "下一页")]')),
             callback='parse_item',
             follow=True
@@ -65,13 +65,13 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
                 headers=response.headers
             )
 
-            item['noteexpress'] = scrapy.http.Request(
+            noteexpress = yield scrapy.http.Request(
                 url=ExportUrl+'NoteExpress&rs='+export,
                 headers=response.headers,
                 cookies={'rs': export},
                 meta={'dont_merge_cookies': False},
-                callback=self.parse_export
             )
+            item['noteexpress'] = self.parse_export(noteexpress)
 
             notefirst = yield scrapy.http.Request(
                 url=ExportUrl+'NoteFirst&rs='+export,
@@ -111,30 +111,10 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
             # print item['name'][0].encode('utf-8'), item['url'][0].encode('utf-8')
             # yield item
 
-    def prase_notefirst(self, response):
-        ExportUrl = "http://s.wanfangdata.com.cn/Export/Export.aspx?scheme=NoteFirst"
-
-        item = response.meta['item']
-
-        rs = item['rs']
-
-        request = scrapy.Request(
-                url=ExportUrl+'&rs='+rs,
-                headers=response.headers,
-                cookies={'rs': rs},
-                meta={'dont_merge_cookies': False},
-                callback=self.parse_export
-        )
-        request.meta['item'] = item
-
-        return request
-
-        # return export
-
     def parse_export(self, response):
         # item = ExportItem()
         export = response.css('#export_container').xpath('string(.)').extract()
-        print response.css('#export_container').xpath('string(.)').extract()
+        # print response.css('#export_container').xpath('string(.)').extract()
         return export
         # return {'export': str(export[0])}
         # item['id'] = response.request.cookies['rs']
