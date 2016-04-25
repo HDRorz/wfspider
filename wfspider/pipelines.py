@@ -31,6 +31,7 @@ class ExportPipeline(object):
               '<Bibliographies>' \
               '<BibliographiesCount>1</BibliographiesCount>' + item['notefirst'][0].encode('utf8') + '</Bibliographies>'
         # print xml
+        xml = xml.replace('&', '&amp;')
         tree = etree.fromstring(xml)
 
         if item['type'] == 'Periodical':
@@ -116,7 +117,7 @@ class ExportPipeline(object):
             title = tree.xpath('//Title/text()')
             author = tree.xpath('//Author/Info/FullName/text()')
             abstract = tree.xpath('//Abstract/text()')
-            keywords = tree.xpath('//keyword/text()')
+            keywords = tree.xpath('//Keyword/text()')
             engtitle = tree.xpath('//Title[@Lang="eng"]/text()')
             engkeywords = tree.xpath('//keyword[@Lang="eng"]/text()')
             engabstract = tree.xpath('//Abstract[@Lang="eng"]/text()')
@@ -164,9 +165,9 @@ class ExportPipeline(object):
 
             datasetid = tree.xpath('//Url/text()')
             title = tree.xpath('//PrimaryTitle/Title/text()')
-            author = tree.xpath('//Author/Info[@Lang="chi"]/FullName/text()')
-            abstract = tree.xpath('//Abstract[@Lang="chi"]/text()')
-            keywords = tree.xpath('//keyword[@Lang="chi"]/text()')
+            author = tree.xpath('//Author/Info/FullName/text()')
+            abstract = tree.xpath('//Abstract/text()')
+            keywords = tree.xpath('//keyword/text()')
             engauthor = tree.xpath('//Author/Info[@Lang="eng"]/FullName/text()')
             engauthoradd = tree.xpath('//Author/Info[@Lang="chi"]/Organization/text()')
             engtitle = tree.xpath('//Title[@Lang="eng"]/text()')
@@ -175,7 +176,7 @@ class ExportPipeline(object):
             classification = tree.xpath('//CLC/text()')
             conferencesname = tree.xpath('//Media/text()')
             proceedingname = tree.xpath('//MotherTitle/Title/text()')
-            year = tree.xpath('//Year/text()')
+            year = tree.xpath('//ConferenceDate/text()')
             page = tree.xpath('//PageScope/text()')
             publisher = tree.xpath('//SponsorName/text()')
             language = tree.xpath('//Language/text()')

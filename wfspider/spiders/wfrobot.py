@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 from twisted.internet import defer
 
 import scrapy
@@ -14,20 +19,26 @@ from wfspider.items import SpiderItem, ExportItem
 
 class WfrobotSpider(scrapy.spiders.CrawlSpider):
     name = "wfrobot"
-    allowed_domains = ["wanfangdata.com.cn"]
-    start_urls = [
-        u"http://s.wanfangdata.com.cn/Paper.aspx?q=海洋资源勘探"
-    ]
-    rules = [
-        Rule(
-            LinkExtractor(
-                allow=(''),
-                deny=('p=10'),  # 设置爬几页搜索结果
-                restrict_xpaths=(u'//p[contains(@class, "pager")]/a[contains(text(), "下一页")]')),
-            callback='parse_item',
-            follow=True
-        )
-    ]
+
+    def __init__(self, keyword='', *args, **kwargs):
+        super(WfrobotSpider, self).__init__(*args,  **kwargs)
+        self.allowed_domains = ["wanfangdata.com.cn"]
+        self.start_urls = [
+            u"http://s.wanfangdata.com.cn/Paper.aspx?q=%s" % keyword,
+        ]
+        self.rules = [
+            Rule(
+                LinkExtractor(
+                    allow=(''),
+                    deny=('p=5'),  # 设置爬几页搜索结果
+                    restrict_xpaths=(u'//p[contains(@class, "pager")]/a[contains(text(), "下一页")]')),
+                callback='parse_item',
+                follow=True
+            )
+        ]
+
+        print keyword
+        print self.start_urls
 
     # def parse(self, response):
     #     for sel in response.css('.record-item'):
@@ -41,6 +52,8 @@ class WfrobotSpider(scrapy.spiders.CrawlSpider):
     @inline_requests
     def parse_item(self, response):
         ExportUrl = "http://s.wanfangdata.com.cn/Export/Export.aspx?scheme="
+
+        self.state['items_count'] = self.state.get('items_count', 0) + 1
         for sel in response.css('.record-item'):
 
             item = SpiderItem()
